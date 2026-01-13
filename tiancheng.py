@@ -402,7 +402,22 @@ class ShopBackpackDialog(QDialog):
         items = self.parent.items.get("shop_items", [])
         for i, it in enumerate(items):
             box = QFrame()
-            box.setStyleSheet("background: white; border: 1px solid #eee; border-radius: 10px;")
+            
+            # 🛠️【核心修复点】
+            # 在 CSS 中强制加入 'color: black;'
+            # 这样无论系统是黑是白，这个卡片永远是“白底黑字”
+            box.setStyleSheet("""
+                QFrame {
+                    background: white; 
+                    color: black; 
+                    border: 1px solid #eee; 
+                    border-radius: 10px;
+                }
+                QLabel {
+                    color: black;
+                }
+            """)
+            
             v = QVBoxLayout(box)
             
             # 图片显示
@@ -415,11 +430,14 @@ class ShopBackpackDialog(QDialog):
             v.addWidget(img_l)
 
             # 名字价格
+            # 这里的 QLabel 现在会继承上面 box 设置的 color: black
             v.addWidget(QLabel(f"<b>{it['name']}</b>"), alignment=Qt.AlignCenter)
             v.addWidget(QLabel(f"🪙 {it['price']}"), alignment=Qt.AlignCenter)
             
             btn = QPushButton("购买")
             # 💡 依然是只传引用，点击才扣钱
+            # 给按钮也稍微美化一下，防止在深色模式下显得突兀
+            btn.setStyleSheet("color: black; border: 1px solid #ccc; border-radius: 5px; padding: 3px;")
             btn.clicked.connect(lambda ch, item=it: self.buy_item(item))
             v.addWidget(btn)
             
