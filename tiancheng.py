@@ -86,7 +86,8 @@ class DataManager:
             
 # ================= 听歌功能 (多平台格式统一版) =================
 class MusicMonitor:
-    def __init__(self):
+    def __init__(self, parent):
+        self.parent = parent
         self.last_song = ""
 
     async def get_media_info(self):
@@ -121,22 +122,41 @@ class MusicMonitor:
 
         # ---------------- Mac 逻辑 ----------------
         elif IS_MAC:
+            target_app = self.parent.config.get("music_client", "Apple Music")
+            print(f"DEBUG_MAC: 当前选择的音乐客户端是 {target_app}")
             # AppleScript: 强制拼接成 "Title - Artist" 字符串返回
-            script = '''
-            tell application "Music"
-                if it is running then
-                    if player state is playing then
-                        set t_name to name of current track
-                        set t_artist to artist of current track
-                        return (t_name & " - " & t_artist)
+            if target_app == "Apple Music":
+                script = '''
+                tell application "Music"
+                    if it is running then
+                        if player state is playing then
+                            set t_name to name of current track
+                            set t_artist to artist of current track
+                            return (t_name & " - " & t_artist)
+                        else
+                            return "Apple Music is running but not playing"
+                        end if
                     else
-                        return "Music is running but not playing"
+                        return "Apple Music app is NOT running"
                     end if
-                else
-                    return "Music app is NOT running"
-                end if
-            end tell
-            '''
+                end tell
+                '''
+            elif target_app == "Spotify":
+                script = '''
+                tell application "Spotify"
+                    if it is running then
+                        if player state is playing then
+                            set t_name to name of current track
+                            set t_artist to artist of current track
+                            return (t_name & " - " & t_artist)
+                        else
+                            return "Spotify is running but not playing"
+                        end if
+                    else
+                        return "Spotify app is NOT running"
+                    end if
+                end tell
+                '''
             
             try:
                 # 执行脚本
@@ -199,7 +219,7 @@ class UnifiedSettings(QDialog):
         # 它是 Windows 自带的编程字体，对数字的支持是最好的
         # 💡 修改后的字体设置 (兼容 Mac 和 Win)
         if platform.system() == "Darwin":
-            safe_font = QFont("Monaco", 11) # Mac 的代码字体
+            safe_font = QFont("Menlo", 11) # Mac 的代码字体
         else:
             safe_font = QFont("Consolas", 11) # Win 的代码字体
         self.pet_size.setFont(safe_font)
@@ -228,6 +248,15 @@ class UnifiedSettings(QDialog):
         self.current_bg = self.temp_config.get("dialog_bg", "#ffffff"); self.current_border = self.temp_config.get("dialog_border", "#000000")
         btn_bg = QPushButton("选择气泡颜色"); btn_bg.clicked.connect(lambda: self.pick_color('bg'))
         btn_bd = QPushButton("选择边框颜色"); btn_bd.clicked.connect(lambda: self.pick_color('bd'))
+
+        # --- 4.[新增] Mac 音乐客户端选择 ---
+        self.music_client_combo = QComboBox()
+        self.music_client_combo.addItems(["Apple Music", "Spotify"])
+        # 设置当前选中的项 (从配置读取，默认 Apple Music)
+        current_client = self.temp_config.get("music_client", "Apple Music")
+        self.music_client_combo.setCurrentText(current_client)
+        # 美化一下
+        self.music_client_combo.setFont(safe_font)
         
         api_l.addRow("API URL:", self.api_url); api_l.addRow("API Key:", self.api_key)
         api_l.addRow("连通性测试:", test_layout)
@@ -236,6 +265,9 @@ class UnifiedSettings(QDialog):
         api_l.addRow("桌宠像素大小:", self.pet_size); api_l.addRow("全局字体大小:", self.font_size)
         api_l.addRow("对话记忆长度:", self.max_history)
         api_l.addRow("底色设置:", btn_bg); api_l.addRow("边框设置:", btn_bd)
+
+        if platform.system() == "Darwin": # 只有 Mac 显示这个选项
+            api_l.addRow("音乐客户端选择 (Mac):", self.music_client_combo)
 
         # --- Tab 2 & 3: 角色设定与档案 ---
         self.tab_char = QWidget(); char_l = QFormLayout(self.tab_char)
@@ -288,7 +320,8 @@ class UnifiedSettings(QDialog):
         # 1. 更新父窗口的配置字典
         self.parent.config.update({
             "api_url": self.api_url.text(), "api_key": self.api_key.text(), "model": self.model_combo.currentText(),
-            "pet_size": self.pet_size.value(), "font_size": self.font_size.value(), "max_history": self.max_history.value(),
+            "pet_size": self.pet_size.value(), "font_size": self.font_size.value(), "music_client": self.music_client_combo.currentText(),
+            "max_history": self.max_history.value(),
             "dialog_bg": self.current_bg, "dialog_border": self.current_border,
             "char_name": self.c_name.text(), "char_gender": self.c_sex.text(), "char_call_user": self.c_call.text(), "char_extra": self.c_extra.toPlainText(),
             "user_name": self.u_name.text(), "user_gender": self.u_sex.text(), "user_relation": self.u_rel.text(), "user_extra": self.u_extra.toPlainText()
@@ -1148,7 +1181,7 @@ class DesktopPet(QWidget):
             #print("DEBUG: 模式已开启，正在初始化监视器...")
             # 开启模式
             if not hasattr(self, 'music_monitor'):
-                self.music_monitor = MusicMonitor()
+                self.music_monitor = MusicMonitor(self)
             
             # 启动定时器，每 5 秒查一次
             self.music_timer.start(5000)

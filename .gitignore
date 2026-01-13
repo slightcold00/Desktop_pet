@@ -1,1 +1,5 @@
 *.spec
+.DS_Store
+/.vscode
+/build
+/dist
