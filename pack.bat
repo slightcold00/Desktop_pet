@@ -5,12 +5,12 @@ call .\venv\Scripts\activate
 :: 2. 运行打包命令
 pyinstaller --noconsole --windowed ^
     --name "DesktopPet" ^
-    --icon "res/tiancheng.ico" ^
+    --icon "icon/tiancheng.ico" ^
     --add-data "data;data" ^
     --add-data "emo;emo" ^
     --add-data "food;food" ^
     --clean ^
-    tiancheng.py
+    main.py
 
 echo 打包完成啦！
 pause
