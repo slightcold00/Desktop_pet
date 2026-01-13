@@ -5,13 +5,15 @@
 
 
 <p><b>Say hello</b></p>
+<p><i>由 Gemini 老师激情提供默认人设🤫</i></p>
+
 </div>
 
 ---
 
 ## 🌟 项目简介 (Introduction)
 
-**天成 (Tiancheng)** 是一款基于 **PyQt5** 开发的跨平台智慧桌面宠物。它不仅拥有可爱的动态外表，还提供了大模型接口，能够为你提供情感陪伴、摸鱼监测、以及有趣的美食养成系统。（默认名字和default人设由gemini老师激情提供）
+**天成 (Tiancheng)** 是一款基于 **PyQt5** 开发的跨平台智慧桌面宠物。它不仅拥有可爱的动态外表，通过接入大模型，它具备了实时对话、行为反馈等功能，能够为你提供情感陪伴、摸鱼监测、以及有趣的美食养成系统。
 
 ---
 
@@ -23,7 +25,7 @@
 * **📚 一起看书**：实时监测剪贴板的变化并且发表评论，
 * **🍜 美食养成**：拥有完整的商店与背包系统。你可以通过签到赚取金币，给天成买包子、奶茶或芭菲杯，提升他的心情值。
 * **🌼 随机小游戏**：通过"出门逛逛"随机触发AI小剧场，你的选择将会影响他的心情或者金币。
-* **🍏 跨平台适配**：针对 Windows 和 macOS 进行了深度优化，解决了 Mac 端的透明窗口投影残留及高分辨率字体显示问题。
+* **🍏 跨平台适配**：针对 Windows 和 macOS 分别进行了优化。
 
 ---
 
@@ -31,28 +33,64 @@
 
 ```text
 .
-├── main.py         # 主程序入口
-├── data/                # 存储 config.json 和 items.json (用户存档)
-├── emo/                 # 存放天成的各种动态 GIF (人物立绘)
-├── food/                # 存放美食素材图片
-├── icon/                 # 存放图标 (icon.icns) 及 UI 资源
-├── run.sh               # Mac 端一键运行脚本
-└── run.bat              # Windows端一键运行脚本
+├── main.py              # 主程序入口 
+├── music_monitor.py     # 音乐监控模块 
+├── data_manager.py      # 数据读写
+├── config.py            # 全局配置与路径常量
+├── ui_dialogs.py        # UI布局
+├── tiancheng_pet.py     # 核心功能
+├── data/                # 用户存档 (config.json, items.json)
+├── emo/                 # 天成动态 GIF 立绘
+├── food/                # 美食素材图片
+├── icon/                # 程序图标 
+├── install.bat / install.sh        # Windows/Mac 环境一键安装依赖
+├── pack.bat / pack.sh              # Windows/Mac 打包脚本
+└── run.sh / run.bat                # 跨平台一键运行脚本
+
+```
+---
+
+## 🚀 快速开始 (Quick Start)
+
+### 0. 直接下载并解压
+从Releases里可直接获取封装好的应用。
+
+**或者：** 
+### 1. 克隆项目
+
+```bash
+git clone https://github.com/slightcold00/Desktop_pet.git
+cd Desktop_pet
 
 ```
 
----
+### 2. 环境配置 (Windows)
 
-## 🛠️ 技术细节 (Technical Highlights)
+直接双击运行 `install.bat / install.sh`，它会自动为你创建虚拟环境并安装必要组件。
 
-* **路径自适应**：利用 `sys._MEIPASS` 实现打包后的资源自动定位。
-* **Mac 渲染优化**：通过 `Qt.NoDropShadowWindowHint` 彻底消除 macOS 透明窗口的残留阴影。
-* **数据持久化**：采用 JSON 格式存储用户设置与角色档案，确保“记忆”永不丢失。
+### 3. 运行天成
+
+```bash
+python main.py
+
+```
+or 直接双击运行 `run.sh / run.bat`
 
 ---
 
 ## 💻 历史版本
 
 * **见Release**
+
+---
+
+## 👤 作者 (Author)
+
+### Main Developer:
+* **GitHub**: [@slightcold00](https://github.com/slightcold00)
+* **Special Thanks**: 感谢 Gemini 老师在项目灵感、代码重构及图标 Bug 修复过程中的激情陪伴与指导。✨
+
+### Collaborators:
+* **GitHub**: [@yixiaoX](https://github.com/yixiaoX)
 
 ---
