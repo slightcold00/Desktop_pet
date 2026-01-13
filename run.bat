@@ -1,3 +1,4 @@
 @echo off
-python tiancheng.py
+python main.py
+
 pause
