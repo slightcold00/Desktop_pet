@@ -31,11 +31,11 @@
 
 ```text
 .
-├── tiancheng.py         # 主程序入口
+├── main.py         # 主程序入口
 ├── data/                # 存储 config.json 和 items.json (用户存档)
 ├── emo/                 # 存放天成的各种动态 GIF (人物立绘)
 ├── food/                # 存放美食素材图片
-├── res/                 # 存放图标 (icon.icns) 及 UI 资源
+├── icon/                 # 存放图标 (icon.icns) 及 UI 资源
 ├── run.sh               # Mac 端一键运行脚本
 └── run.bat              # Windows端一键运行脚本
 
