@@ -89,13 +89,18 @@ class DesktopPet(QWidget):
         self.clipboard = QApplication.clipboard()
         # 当剪贴板内容变化时，自动运行 check_clipboard 函数
         self.clipboard.dataChanged.connect(self.check_clipboard)
-
+        
+        # 💡 核心：设置窗口图标（记得套上我们之前的路径转换函数）
+        if IS_WINDOWS:
+            icon_path = os.path.join(RES_PATH, 'icon', 'tiancheng.ico')
+            self.setWindowIcon(QIcon(icon_path))
+            
 
     def init_ui(self):
         # 💡 关键：使用 | 符号将多个标志位连接起来
-    # Qt.FramelessWindowHint 是让你之前做的无边框效果保留
-    # Qt.WindowStaysOnTopHint 是让它始终置顶
-    # Qt.SubWindow 有时可以帮助在某些系统下更稳定地置顶
+        # Qt.FramelessWindowHint 是让你之前做的无边框效果保留
+        # Qt.WindowStaysOnTopHint 是让它始终置顶
+        # Qt.SubWindow 有时可以帮助在某些系统下更稳定地置顶
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Window)
     
         #self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool)
@@ -126,8 +131,6 @@ class DesktopPet(QWidget):
         
         self.apply_styles()
         self.show()
-
-        self.setWindowIcon(QIcon(os.path.join(RES_PATH, 'tiancheng.ico')))
 
 
     def apply_styles(self):
@@ -200,37 +203,8 @@ class DesktopPet(QWidget):
     def set_gif(self, n):
         p = os.path.join(RES_PATH, "emo", n)
         if os.path.exists(p):
-            m = QMovie(p)
-            
-            # 1. 获取用户设置的大小作为“基准高度”
-            # (通常桌宠是根据高度来决定大小的，宽度随身材变化)
-            target_h = self.config.get("pet_size", 200)
-            
-            # 2. 读取 GIF 的原始尺寸
-            m.jumpToFrame(0)
-            orig_size = m.currentImage().size()
-            
-            # 3. 计算“宽高比”并得出新宽度
-            if orig_size.height() > 0:
-                # 比例 = 目标高度 / 原图高度
-                ratio = target_h / orig_size.height()
-                # 新宽度 = 原图宽度 * 比例
-                new_w = int(orig_size.width() * ratio)
-            else:
-                # 防止除以0的兜底方案（保持正方形）
-                new_w = target_h
-            
-            # 4. 设置 GIF 的缩放大小
-            m.setScaledSize(QSize(new_w, target_h))
-            
-            # 5. 关键：同时调整存放 GIF 的 QLabel 容器的大小
-            # 这样容器就会贴合图片，不会有留白或拉伸
-            self.pet.setFixedSize(new_w, target_h)
-            
-            # ---------------------------
-
-            self.pet.setMovie(m)
-            m.start()
+            m = QMovie(p); m.setScaledSize(QSize(self.config.get("pet_size",200), self.config.get("pet_size",200)))
+            self.pet.setMovie(m); m.start()
 
     def handle_chat(self):
         t = self.input.text()

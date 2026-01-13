@@ -7,6 +7,7 @@ pyinstaller --noconsole --windowed ^
     --name "DesktopPet" ^
     --icon "icon/tiancheng.ico" ^
     --add-data "data;data" ^
+    --add-data "icon;icon" ^
     --add-data "emo;emo" ^
     --add-data "food;food" ^
     --clean ^
