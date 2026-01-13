@@ -1,7 +1,7 @@
 # 🐾 天成 Desktop Pet (Cross-Platform)
 
 <div align="center">
-<img src="./IMG/image.png" width="200" alt="天成预览图">
+<img src="./emo/stand.gif" width="200" alt="天成预览图">
 
 
 <p><b>Say hello</b></p>
