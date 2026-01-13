@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import sys, os, json, time, random, threading, requests, psutil, ctypes
+import sys, os, json, time, random, threading, requests, psutil, ctypes, subprocess
 
 from PyQt5.QtWidgets import (QApplication, QWidget, QLabel, QVBoxLayout, QHBoxLayout, 
                              QLineEdit, QPushButton, QMenu, QAction, QDialog, QTextEdit, 
@@ -18,7 +18,7 @@ IS_WINDOWS = platform.system() == "Windows"
 IS_MAC = platform.system() == "Darwin"
 
 # 为了保险，你在下面加一行打印，运行 run.sh 时看看输出什么
-print(f"DEBUG: 当前系统是 Windows 吗？ {IS_WINDOWS}")
+#print(f"DEBUG: 当前系统是 Windows 吗？ {IS_WINDOWS}")
 
 
 
@@ -84,29 +84,84 @@ class DataManager:
             json.dump(data, f, ensure_ascii=False, indent=4)
             
             
-# 听歌功能
+# ================= 听歌功能 (多平台格式统一版) =================
 class MusicMonitor:
     def __init__(self):
         self.last_song = ""
 
     async def get_media_info(self):
-        try:
-            # 获取系统媒体会话管理器
-            sessions = await SessionManager.request_async()
-            current_session = sessions.get_current_session()
-            
-            if current_session:
-                # 尝试抓取媒体属性（歌名、歌手）
-                properties = await current_session.try_get_media_properties_async()
-                title = properties.title
-                artist = properties.artist
+        """
+        统一返回格式: "Title - Artist"
+        如果没在播放或获取失败，统一返回: None
+        """
+        
+        # ---------------- Windows 逻辑 ----------------
+        if IS_WINDOWS:
+            try:
+                # 1. 获取会话
+                sessions = await SessionManager.request_async()
+                current_session = sessions.get_current_session()
                 
-                if title:
-                    return f"{title} - {artist}"
-            return None
-        except Exception as e:
-            print(f"媒体抓取异常: {e}")
-            return None
+                if current_session:
+                    # 2. 获取属性
+                    properties = await current_session.try_get_media_properties_async()
+                    title = properties.title
+                    artist = properties.artist
+                    
+                    # 3. 格式化输出
+                    if title and artist:
+                        return f"{title} - {artist}"
+                    elif title:
+                        return title
+                        
+                return None
+            except Exception as e:
+                print(f"Win Media Error: {e}")
+                return None
+
+        # ---------------- Mac 逻辑 ----------------
+        elif IS_MAC:
+            # AppleScript: 强制拼接成 "Title - Artist" 字符串返回
+            script = '''
+            tell application "Music"
+                if it is running then
+                    if player state is playing then
+                        set t_name to name of current track
+                        set t_artist to artist of current track
+                        return (t_name & " - " & t_artist)
+                    else
+                        return "Music is running but not playing"
+                    end if
+                else
+                    return "Music app is NOT running"
+                end if
+            end tell
+            '''
+            
+            try:
+                # 执行脚本
+                result = subprocess.run(
+                    ['osascript', '-e', script], 
+                    capture_output=True, 
+                    text=True
+                )
+                
+                # 4. 清洗数据 (去除 AppleScript 可能带来的换行符)
+                output = result.stdout.strip()
+                
+                # 调试打印 (测试成功后可注释掉)
+                # print(f"DEBUG_MAC_RAW: [{output}]")
+
+                if output and output != "null" and output != "missing value":
+                    return output
+                
+                return None
+                
+            except Exception as e:
+                print(f"Mac Media Error: {e}")
+                return None
+        
+        return None
 
 # ================= 设置中心 (功能完善) =================
 
@@ -144,7 +199,7 @@ class UnifiedSettings(QDialog):
         # 它是 Windows 自带的编程字体，对数字的支持是最好的
         # 💡 修改后的字体设置 (兼容 Mac 和 Win)
         if platform.system() == "Darwin":
-            safe_font = QFont("Menlo", 11) # Mac 的代码字体
+            safe_font = QFont("Monaco", 11) # Mac 的代码字体
         else:
             safe_font = QFont("Consolas", 11) # Win 的代码字体
         self.pet_size.setFont(safe_font)
@@ -1084,51 +1139,58 @@ class DesktopPet(QWidget):
         
         # 💡 注意：修改 Flags 后窗口通常会隐藏，需要重新 show
         self.show()
-        
-    def toggle_listen_music(self):
-            # 1. 检查是不是 Windows
-            if platform.system() == "Windows":
-                self.is_listening_music = not self.is_listening_music
-                
-                if self.is_listening_music:
-                    # 开启模式
-                    if not hasattr(self, 'music_monitor'):
-                        self.music_monitor = MusicMonitor()
-                    
-                    self.music_timer.start(5000)
-                    self.show_msg("开启‘一起听歌’模式，我会留意你在听什么哦~")
-                else:
-                    # 关闭模式
-                    self.music_timer.stop()
-                    self.current_music = ""
-                    self.show_msg("已关闭‘一起听歌’模式。")
-
-            # 2. 检查是不是 Mac (注意：这里的 elif 必须和上面的 if 对齐！)
-            elif platform.system() == "Darwin":
-                self.show_msg("抱歉，Mac 端的听歌功能还在开发中哦~")
-                
-            return # 这个 return 也要和最外层的 if 对齐
-            
-    def check_music_update(self):
-        if not IS_WINDOWS:
-        # 💡 如果是 Mac，暂时不跑这段逻辑，防止崩溃
-            return
     
+    def toggle_listen_music(self):
+        #print("DEBUG: 点击了切换听歌模式...") # 调试打印
+        self.is_listening_music = not self.is_listening_music
+        
+        if self.is_listening_music:
+            #print("DEBUG: 模式已开启，正在初始化监视器...")
+            # 开启模式
+            if not hasattr(self, 'music_monitor'):
+                self.music_monitor = MusicMonitor()
+            
+            # 启动定时器，每 5 秒查一次
+            self.music_timer.start(5000)
+            self.show_msg("开启‘一起听歌’模式，我会留意你在听什么哦~")
+        else:
+            #print("DEBUG: 模式已关闭")
+            # 关闭模式
+            self.music_timer.stop()
+            self.current_music = ""
+            self.show_msg("已关闭‘一起听歌’模式。")
+
+    def check_music_update(self):
         """每隔5秒被调用一次"""
+        #print("DEBUG: 定时器触发 check_music_update") # 如果刷屏太快可以注释这行
+        
+        # ⚠️ 绝对不能有 if not IS_WINDOWS: return 这种代码！
+        
         import asyncio
         try:
-            # 由于 winsdk 是异步的，在 Qt 这种同步环境下我们需要这样跑：
+            # 创建一个新的事件循环
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
+            
+            # 运行检测
             song_info = loop.run_until_complete(self.music_monitor.get_media_info())
             loop.close()
 
+            # 调试打印：看看每5秒到底抓到了什么
+            if song_info:
+                print(f"DEBUG: 抓取到的歌曲: {song_info}")
+            
             # 如果抓到了歌名，且和刚才听的不一样（说明切歌了）
             if song_info and song_info != self.current_music:
+                print(f"DEBUG: 发现切歌！旧: {self.current_music} -> 新: {song_info}")
                 self.current_music = song_info
                 self.handle_music_reaction(song_info)
+            elif song_info:
+                # 歌没变
+                pass
+                
         except Exception as e:
-            print(f"听歌逻辑出错了: {e}")
+            print(f"ERROR: 听歌逻辑出错了: {e}")
 
     def handle_music_reaction(self, song_info):
         """发送给 AI 进行点评"""
