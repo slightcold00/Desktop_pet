@@ -1,8 +1,5 @@
 @echo off
 python main.py
-<<<<<<< Updated upstream
+pause
 
-pause
-=======
-pause
->>>>>>> Stashed changes
+
