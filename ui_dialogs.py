@@ -43,9 +43,7 @@ class UnifiedSettings(QDialog):
         self.pet_size.setRange(100, 800)
         self.pet_size.setValue(int(self.temp_config.get("pet_size", 200)))
 
-        # 💡 换一个绝对不会乱码的数字专用字体：Consolas
-        # 它是 Windows 自带的编程字体，对数字的支持是最好的
-        # 💡 修改后的字体设置 (兼容 Mac 和 Win)
+        # 使用各平台默认的等宽字体 Menlo/Consolas
         if IS_MAC:
             safe_font = QFont("Menlo", 11) # Mac 的代码字体
         else:
@@ -72,12 +70,19 @@ class UnifiedSettings(QDialog):
         self.max_history.setFont(safe_font)
         self.max_history.lineEdit().setFont(safe_font)
         self.max_history.setStyleSheet(f"font-family: '{safe_font.family()}'; qproperty-alignment: 'AlignCenter';")
-                
-        self.current_bg = self.temp_config.get("dialog_bg", "#ffffff"); self.current_border = self.temp_config.get("dialog_border", "#000000")
+
+        # --- 5. 气泡颜色设置 ---
+        # 初始化背景颜色和边框颜色
+        self.current_bg = self.temp_config.get("dialog_bg", "#ffffff")
+        self.current_border = self.temp_config.get("dialog_border", "#000000")
+        # ✅ [新增] 初始化字体颜色
+        self.current_font_color = self.temp_config.get("font_color", "#000000")
+        # 选择颜色按钮
         btn_bg = QPushButton("选择气泡颜色"); btn_bg.clicked.connect(lambda: self.pick_color('bg'))
         btn_bd = QPushButton("选择边框颜色"); btn_bd.clicked.connect(lambda: self.pick_color('bd'))
+        btn_fc = QPushButton("选择文字颜色"); btn_fc.clicked.connect(lambda: self.pick_color('fc'))
 
-        # --- 4.[新增] Mac 音乐客户端选择 ---
+        # --- 4. Mac 音乐客户端选择 ---
         self.music_client_combo = QComboBox()
         self.music_client_combo.addItems(["Apple Music", "Spotify"])
         # 设置当前选中的项 (从配置读取，默认 Apple Music)
@@ -93,6 +98,7 @@ class UnifiedSettings(QDialog):
         api_l.addRow("桌宠像素大小:", self.pet_size); api_l.addRow("全局字体大小:", self.font_size)
         api_l.addRow("对话记忆长度:", self.max_history)
         api_l.addRow("底色设置:", btn_bg); api_l.addRow("边框设置:", btn_bd)
+        api_l.addRow("文字颜色:", btn_fc)
 
         if IS_MAC: # 只有 Mac 显示这个选项
             api_l.addRow("音乐客户端选择 (Mac):", self.music_client_combo)
@@ -137,10 +143,17 @@ class UnifiedSettings(QDialog):
         except Exception as e: QMessageBox.critical(self, "出错", str(e))
 
     def pick_color(self, t):
-        col = QColorDialog.getColor(QColor(self.current_bg if t=='bg' else self.current_border), self)
+        # 根据类型选择对应的初始颜色
+        if t == 'bg': init_col = QColor(self.current_bg)
+        elif t == 'bd': init_col = QColor(self.current_border)
+        else: init_col = QColor(self.current_font_color) # 'fc'
+        
+        col = QColorDialog.getColor(init_col, self)
+        
         if col.isValid():
             if t == 'bg': self.current_bg = col.name()
-            else: self.current_border = col.name()
+            elif t == 'bd': self.current_border = col.name()
+            else: self.current_font_color = col.name() # ✅ [新增] 保存选中颜色
 
     def save_all(self):
         
@@ -149,7 +162,7 @@ class UnifiedSettings(QDialog):
             "api_url": self.api_url.text(), "api_key": self.api_key.text(), "model": self.model_combo.currentText(),
             "pet_size": self.pet_size.value(), "font_size": self.font_size.value(), "music_client": self.music_client_combo.currentText(),
             "max_history": self.max_history.value(),
-            "dialog_bg": self.current_bg, "dialog_border": self.current_border,
+            "dialog_bg": self.current_bg, "dialog_border": self.current_border, "font_color": self.current_font_color,
             "char_name": self.c_name.text(), "char_gender": self.c_sex.text(), "char_call_user": self.c_call.text(), "char_extra": self.c_extra.toPlainText(),
             "user_name": self.u_name.text(), "user_gender": self.u_sex.text(), "user_relation": self.u_rel.text(), "user_extra": self.u_extra.toPlainText()
         })

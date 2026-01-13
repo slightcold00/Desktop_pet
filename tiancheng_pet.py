@@ -147,13 +147,13 @@ class DesktopPet(QWidget):
             font_family = "'PingFang SC', 'STHeiti', sans-serif" if IS_MAC else "'Microsoft YaHei', 'SimSun', sans-serif"
 
             # 2. 调整组件尺寸
-            #self.pet.setFixedSize(psize, psize)
-            self.bubble.setMaximumHeight(psize)
-            self.bubble.setMinimumHeight(int(psize * 0.3))
-            self.bubble.setFixedWidth(psize + 60)
+            # 要改成自适应气泡，不能锁死宽高了
+            # self.bubble.setMaximumHeight(psize)
+            # self.bubble.setMinimumHeight(int(psize * 0.3))
+            # self.bubble.setFixedWidth(psize + 60)
 
             # 💡 3. 【核心修复】强制去除 Mac 阴影并重显
-            if is_mac:
+            if IS_MAC:
                 # 这里的逻辑是：保持原有标志，并额外强加一个“无阴影”标志
                 self.setWindowFlags(self.windowFlags() | Qt.NoDropShadowWindowHint)
                 # 必须调用 show()，系统才会重新渲染窗口属性，把影子变掉
@@ -163,23 +163,61 @@ class DesktopPet(QWidget):
             self.set_gif("stand.gif")
 
             # 5. 应用样式表 (使用动态字体变量)
+            fc = self.config.get("font_color", "#000000") # 获取颜色
+
             self.bubble.setStyleSheet(f"""
                 QTextBrowser {{
                     background-color: {self.config.get('dialog_bg','#ffffff')}; 
                     border: 2px solid {self.config.get('dialog_border','#000000')}; 
+                    color: {fc};  /* ✅ [新增] 应用字体颜色 */
                     border-radius: 12px; 
-                    padding: 8px; 
+                    padding: 10px;
                     font-size: {fsize}px; 
                     font-family: {font_family};
                 }}
-                QScrollBar:vertical {{ width: 4px; background: transparent; }}
-                QScrollBar::handle:vertical {{ background: #ccc; border-radius: 2px; }}
+                /* 滚动条 */
+                // QScrollBar:vertical {{ width: 4px; background: transparent; }}
+                // QScrollBar::handle:vertical {{ background: #ccc; border-radius: 2px; }}
+                /* 隐藏滚动条 */
+                QScrollBar:vertical {{ width: 0px; }}
             """)
             
             self.input.setStyleSheet(f"font-size: {fsize}px; font-family: {font_family};")
+
+            # 5. 锁定对话输入框框度
+            psize = self.config.get("pet_size", 200)
+            input_width = psize
+            self.input.setFixedWidth(input_width)
+            self.main_layout.setAlignment(self.input, Qt.AlignCenter) # 强制居中输入框
             
             # 6. 刷新布局
             self.updateGeometry()
+
+    # [新增] 自适应气泡计算方法
+    def adjust_bubble_size(self, text):
+        # 1. 获取基础配置
+        psize = self.config.get("pet_size", 200)
+        font = self.bubble.font()
+        fm = QFontMetrics(font)
+        
+        # 2. 设定气泡的最大宽度（例如：桌宠大小的 1.2 倍，防止气泡太宽遮挡屏幕）
+        max_width = int(psize * 1.2)
+        
+        # 3. 计算文字需要的矩形大小
+        # 参数: (x, y, max_w, max_h, flags, text)
+        rect = fm.boundingRect(0, 0, max_width, 1000, Qt.TextWordWrap, text)
+        
+        # 4. 增加 padding (内边距) 和 border 的余量
+        # CSS里 padding 是 10px，两边就是 20px，再加上边框和安全距离，给 35px 比较稳
+        final_w = rect.width() + 35
+        final_h = rect.height() + 35
+        
+        # 5. 设定最小尺寸，防止字太少时气泡缩成一个点
+        final_w = max(50, final_w)
+        final_h = max(40, final_h)
+        
+        # 6. 应用尺寸
+        self.bubble.setFixedSize(final_w, final_h)
 
     # 💡 深度修复：点击事件拦截
     def eventFilter(self, obj, event):
@@ -265,6 +303,10 @@ class DesktopPet(QWidget):
         threading.Thread(target=task, daemon=True).start()
 
     def show_msg(self, t):
+        # --- 在显示前，先根据全文调整气泡大小 ---
+        self.adjust_bubble_size(t)
+        # ------------------------------------
+
         self.bubble.show()
         self.full_t = t; self.curr_t = ""; self.idx = 0
         # 停止旧的计时器
