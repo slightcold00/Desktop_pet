@@ -6,6 +6,6 @@ pyinstaller --noconsole --windowed \
     --add-data "data:data" \
     --add-data "emo:emo" \
     --add-data "food:food" \
-    --icon "res/icon.icns" \
+    --icon "icon/icon.icns" \
     --clean \
-    tiancheng.py
+    main.py
