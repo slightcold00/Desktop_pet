@@ -234,7 +234,7 @@ class UnifiedSettings(QDialog):
         self.font_size.setValue(int(self.temp_config.get("font_size", 14)))
         self.font_size.setFont(safe_font)
         self.font_size.lineEdit().setFont(safe_font)
-        self.font_size.setStyleSheet("font-family: 'Consolas'; qproperty-alignment: 'AlignCenter';")
+        self.font_size.setStyleSheet(f"font-family: '{safe_font.family()}'; qproperty-alignment: 'AlignCenter';")
 
         # --- 3. 对话记忆长度 ---
         self.max_history = QSpinBox()
@@ -243,7 +243,7 @@ class UnifiedSettings(QDialog):
         self.max_history.setValue(int(self.temp_config.get("max_history", 10)))
         self.max_history.setFont(safe_font)
         self.max_history.lineEdit().setFont(safe_font)
-        self.max_history.setStyleSheet("font-family: 'Consolas'; qproperty-alignment: 'AlignCenter';")
+        self.max_history.setStyleSheet(f"font-family: '{safe_font.family()}'; qproperty-alignment: 'AlignCenter';")
                 
         self.current_bg = self.temp_config.get("dialog_bg", "#ffffff"); self.current_border = self.temp_config.get("dialog_border", "#000000")
         btn_bg = QPushButton("选择气泡颜色"); btn_bg.clicked.connect(lambda: self.pick_color('bg'))
