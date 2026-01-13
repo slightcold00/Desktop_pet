@@ -36,8 +36,8 @@
 ├── emo/                 # 存放天成的各种动态 GIF (人物立绘)
 ├── food/                # 存放美食素材图片
 ├── res/                 # 存放图标 (icon.icns) 及 UI 资源
-├── pack.sh              # Mac 端一键封装脚本
-└── requirements.txt     # 项目依赖清单
+├── run.sh               # Mac 端一键运行脚本
+└── run.bat              # Windows端一键运行脚本
 
 ```
 
