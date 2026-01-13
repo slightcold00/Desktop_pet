@@ -144,11 +144,10 @@ class DesktopPet(QWidget):
             
             # 💡 根据系统选择最佳字体，解决 Mac 报错警告
             # Mac 用苹方 (PingFang SC)，Win 用微软雅黑 (Microsoft YaHei)
-            is_mac = platform.system() == "Darwin"
-            font_family = "'PingFang SC', 'STHeiti', sans-serif" if is_mac else "'Microsoft YaHei', 'SimSun', sans-serif"
+            font_family = "'PingFang SC', 'STHeiti', sans-serif" if IS_MAC else "'Microsoft YaHei', 'SimSun', sans-serif"
 
             # 2. 调整组件尺寸
-            self.pet.setFixedSize(psize, psize)
+            #self.pet.setFixedSize(psize, psize)
             self.bubble.setMaximumHeight(psize)
             self.bubble.setMinimumHeight(int(psize * 0.3))
             self.bubble.setFixedWidth(psize + 60)
