@@ -1,0 +1,18 @@
+{
+    "api_url": "",
+    "api_key": "",
+    "model": "deepseek-chat",
+    "pet_size": 200,
+    "font_size": 14,
+    "dialog_bg": "#ffffff",
+    "dialog_border": "#000000",
+    "max_history": 10,
+    "char_name": "",
+    "char_gender": "",
+    "char_call_user": "",
+    "char_extra": "",
+    "user_name": "",
+    "user_gender": "",
+    "user_relation": "",
+    "user_extra": ""
+}

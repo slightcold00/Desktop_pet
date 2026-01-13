@@ -1,0 +1,17 @@
+{
+    "gold": 100,
+    "mood": 60,  
+    "last_check_in": " ",
+    "shop_items": [
+                {"name": "包子", "price": 10, "img": "baozi.png"},
+                {"name": "馄饨", "price": 15, "img": "huntun.png"},
+                {"name": "米线", "price": 18, "img": "mixian.png"},
+                {"name": "清汤面", "price": 12, "img": "noodle.png"},
+                {"name": "牛肉面", "price": 25, "img": "beef_noodle.png"},
+                {"name": "西瓜", "price": 10, "img": "watermelon.png"},
+                {"name": "橙汁", "price": 8, "img": "orangejuice.png"},
+                {"name": "柠檬水", "price": 5, "img": "lemonwater.png"},
+                {"name": "奶茶", "price": 7, "img": "milktea.png"},
+                {"name": "芭菲杯", "price": 15, "img": "parfait.png"}
+            ]
+}
